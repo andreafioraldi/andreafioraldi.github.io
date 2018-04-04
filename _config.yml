@@ -30,7 +30,7 @@ permalink: /:title
 #------------------------------------------------------------------------------
 # Social sharing, comments and RSS.
 #------------------------------------------------------------------------------
-disqus-id: andreafioraldi
+disqus-id: andreafioraldi-github-io
 
 enable-share: true
 twitter: andreafioraldi
