@@ -1,51 +1,29 @@
-#------------------------------------------------------------------------------
-# General
-#------------------------------------------------------------------------------
-name: "Andrea Fioraldi"
-description: "Computer engineering student at Sapienza university of Rome. Reverse engineer. Exploit developer. Trumpeter. Homebrewer. Kamehameha expert."
-language: "en"
+# Jekyll configuration
 
-url: http://localhost:4000
-url: https://andreafioraldi.github.io/
-baseurl: ''
+name: Xixia
+description: Welcome to Xixia！
 
-#------------------------------------------------------------------------------
-# Markdown processor and code highlighting
-#------------------------------------------------------------------------------
-markdown: kramdown
-markdown_ext: "markdown,mkdown,mkdn,mkd,md"
+# url is currently only used only for the RSS feed in feed.xml
+url: https://github.com/zxixia/jekyll-xixia
+
+# baseurl will often be '', but for a project page on gh-pages, it needs to
+# be the project name.
+# *** IMPORTANT: If your local "jekyll serve" throws errors change this to '' or
+#     run it like so: jekyll serve --baseurl=''
+baseurl: '/jekyll-xixia'
+## default date_format
+date_format: 
+  title: "%B-%-d-%Y"
+  archive: "%b"
+  categories: "%b-%Y"
+  tag: "%b-%Y"
+# Language
+lan: "en" 
+
+paginate: 10
+
 highlighter: rouge
-
-kramdown:
-  input: GFM
-  syntax_highlighter: rouge
-
-#------------------------------------------------------------------------------
-# Pagination and friendly URLs
-#------------------------------------------------------------------------------
-paginate: 2
-paginate_path: /page-:num
-permalink: /:title
-
-#------------------------------------------------------------------------------
-# Social sharing, comments and RSS.
-#------------------------------------------------------------------------------
-disqus-id: andreafioraldi-github-io
-
-enable-share: true
-twitter: andreafioraldi
-github: andreafioraldi
-linkedin: andrea-fioraldi
-rss-feed-limit: 10
-rss-show-full: false
-
-#------------------------------------------------------------------------------
-# Configuration, plugins, gems, etc..
-#------------------------------------------------------------------------------
-source: .
-destination: ./_site
+markdown: kramdown
 gems: ['jekyll-paginate']
 
-sass:
-    style: :compressed
-    sass_dir: assets/css/
+exclude: ['README.md', 'LICENSE', "*.bak"]
