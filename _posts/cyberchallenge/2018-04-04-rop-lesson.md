@@ -3,6 +3,7 @@ layout: post
 title: Rop Lesson - CC 18
 categories: cyberchallenge
 tags: cyberchallenge exploit
+comments: true
 description: The slides for the CyberChallenge 2018 lesson about ROP exploit development
 ---
 

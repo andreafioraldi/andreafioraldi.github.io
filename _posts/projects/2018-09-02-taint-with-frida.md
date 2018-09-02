@@ -3,6 +3,7 @@ layout: post
 title: Taint with Frida
 categories: projects
 tags: tools binary
+comments: true
 description: A taint analysis experiment with Frida
 ---
 
