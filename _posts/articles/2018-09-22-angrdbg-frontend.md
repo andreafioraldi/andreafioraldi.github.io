@@ -9,7 +9,7 @@ description: How to create a AngrDBG frontend
 
 [AngrDBG](https://github.com/andreafioraldi/angrdbg) is the library that I developed to synchronize a concrete process state with an angr state.
 
-The library is debugger agnostic. An frontend library that integrated AngrDBG with a specific debugger must implements a subclass of `angrdbg.Debugger` and register an istance of that class as source of data using `angrdbg.register_debugger`.
+The library is debugger agnostic. A frontend library that integrates AngrDBG with a specific debugger must implements a subclass of `angrdbg.Debugger` and register an istance of that class as source of data using `angrdbg.register_debugger`.
 
 The methods that must be implemented are the following:
 
