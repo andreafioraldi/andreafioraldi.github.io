@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Building an AngrDBG frontend for your debugger
+title: Build an AngrDBG frontend for your debugger
 categories: articles
 tags: tools binary
 comments: true
