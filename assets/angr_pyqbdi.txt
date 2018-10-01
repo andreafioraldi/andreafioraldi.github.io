@@ -1,0 +1,228 @@
+## -*- coding: utf-8 -*-
+## 
+## Author: Andrea Fioraldi [ @andreafioraldi ]
+##
+##
+## A small example how to integrate pyQBDI with angr using my tool angrdbg [ https://github.com/andreafioraldi/angrdbg ].
+## 
+## This script transfer the instrumented process state in angr to perform symbolic execution
+##  and after inject the results in the concrete process to bypass all checks.
+## 
+## You need to run an rpyc server on localhost in the same execution folder of the script
+##  to be able to run it.
+##
+## To start an rpyc server (be sure that you are in a virtualenv with angrdbg installed):
+##  $ rpyc_classic.py
+##
+## To start the script:
+##  $ export LD_LIBRARY_PATH=/usr/local/lib/
+##  $ LD_PRELOAD=/usr/local/lib/libpyqbdi.so PYQBDI_TOOL=./ais3_crackme.py ./ais3_crackme DUMMYDUMMYDUMMY
+## 
+## Example run:
+##  ╭─andrea@malweisse ~/Desktop/angr-qdbi  
+##  ╰─$ LD_PRELOAD=/usr/local/lib/libpyqbdi.so PYQBDI_TOOL=./ais3_crackme.py ./ais3_crackme DUMMYDUMMYDUMMY
+##   >> symbolizing 0x7ffd8962ff26 : 100
+##   >> starting exploration...
+##   >> valid state found
+##   >> solution:
+##  0x7ffd8962ff26 : 100 = 'ais3{I_tak3_g00d_n0t3s}## \x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+##  Correct! that is the secret key!
+## 
+## 
+
+import pyqbdi
+import struct
+import rpyc
+import sys
+
+conn = None
+
+SEG_PROT_R = 4
+SEG_PROT_W = 2
+SEG_PROT_X = 1
+
+# implements the methods defined in the abstract class angrdbg.Debugger
+class AngrQBDI(object):
+    def __init__(self, vm, mod):
+        self.name = "AngrQBDI"
+        self.vm = vm
+        self.mod = mod
+        self.maps = pyqbdi.getCurrentProcessMaps()
+    
+    #-------------------------------------
+    def before_stateshot(self):
+        pass
+    def after_stateshot(self, state):
+        pass
+
+    #-------------------------------------
+    def is_active(self):
+        return True
+    
+    #-------------------------------------
+    def input_file(self):
+        return sys.argv[0]
+    
+    def image_base(self):
+        return self.maps[0].range[0]
+    
+    #-------------------------------------
+    def get_byte(self, addr):
+        try:
+            return ord(pyqbdi.readMemory(addr, 1))
+        except BaseException:
+            return None
+
+    def get_word(self, addr):
+        try:
+            return struct.unpack("<H", pyqbdi.readMemory(addr, 2))[0]
+        except BaseException:
+            return None
+
+    def get_dword(self, addr):
+        try:
+            return struct.unpack("<I", pyqbdi.readMemory(addr, 4))[0]
+        except BaseException:
+            return None
+
+    def get_qword(self, addr):
+        try:
+            return struct.unpack("<Q", pyqbdi.readMemory(addr, 8))[0]
+        except BaseException:
+            return None
+
+    def get_bytes(self, addr, size):
+        try:
+            return str(pyqbdi.readMemory(addr, size))
+        except BaseException:
+            return None
+
+    def put_byte(self, addr, value):
+        pyqbdi.writeMemory(addr, chr(value))
+
+    def put_word(self, addr, value):
+        pyqbdi.writeMemory(addr, struct.pack("<H", value))
+
+    def put_dword(self, addr, value):
+        pyqbdi.writeMemory(addr, struct.pack("<I", value))
+
+    def put_qword(self, addr, value):
+        pyqbdi.writeMemoryy(addr, struct.pack("<Q", value))
+
+    def put_bytes(self, addr, value):
+        pyqbdi.writeMemory(addr, value)
+    
+    #-------------------------------------
+    def get_reg(self, name):
+        gpr = self.vm.getGPRState()
+        if name == "efl": name = "eflags"
+        return getattr(gpr, name)
+
+    def set_reg(self, name, value):
+        gpr = self.vm.getGPRState()
+        if name == "efl": name = "eflags"
+        setattr(gpr, name, value)
+        self.vm.setGPRState(gpr)
+    
+    #-------------------------------------
+    def wait_ready(self):
+        return
+    def refresh_memory(self):
+        return
+    
+    #-------------------------------------
+    def seg_by_name(self, name):
+        s = filter(lambda x: x.name == name, self.maps)
+        if len(s) == 0: return None
+        s = s[0]
+        perms = 0
+        perms |= SEG_PROT_R if s.permission  & pyqbdi.PF_READ else 0
+        perms |= SEG_PROT_W if s.permission  & pyqbdi.PF_WRITE else 0
+        perms |= SEG_PROT_X if s.permission  & pyqbdi.PF_EXEC else 0
+        return self.mod.Segment(name, s.range[0], s.range[1], s.permission)
+    
+    def seg_by_addr(self, addr):
+        s = filter(lambda x: addr >= x.range[0] and addr < x.range[1], self.maps)
+        if len(s) == 0: return None
+        s = s[0]
+        perms = 0
+        perms |= SEG_PROT_R if s.permission  & pyqbdi.PF_READ else 0
+        perms |= SEG_PROT_W if s.permission  & pyqbdi.PF_WRITE else 0
+        perms |= SEG_PROT_X if s.permission  & pyqbdi.PF_EXEC else 0
+        return self.mod.Segment(s.name, s.range[0], s.range[1], s.permission)
+
+    def get_got(self): #return tuple(start_addr, end_addr)
+        s = filter(lambda x: x.name == ".got.plt", self.mod.load_project().loader.main_object.sections)[0]
+        return (s.vaddr, s.vaddr + s.memsize)
+    
+    def get_plt(self): #return tuple(start_addr, end_addr)
+        s = filter(lambda x: x.name == ".plt", self.mod.load_project().loader.main_object.sections)[0]
+        return (s.vaddr, s.vaddr + s.memsize)
+    
+    #-------------------------------------
+    def resolve_name(self, name): #return None on fail
+        return None
+
+
+# transfer the current vm state into an angr state
+def VMShot(vm, **kwargs):
+    conn.modules.angrdbg.register_debugger(AngrQBDI(vm, conn.modules.angrdbg))
+    return conn.modules.angrdbg.StateShot(sync_brk=False, **kwargs)
+
+
+def init(host, port=18812):
+    global conn
+    conn = rpyc.classic.connect(host, port)
+    conn.execute("import angr, cle, claripy, angrdbg")
+    conn.execute("import logging; logging.getLogger().setLevel(logging.ERROR)")
+    sys.modules["angrdbg"] = conn.modules.angrdbg
+    sys.modules["angr"] = conn.modules.angr
+    sys.modules["cle"] = conn.modules.cle
+    sys.modules["claripy"] = conn.modules.claripy
+
+
+init("localhost")
+
+##
+## Code related to the instrumented binary
+##
+
+from angrdbg import StateManager
+
+def bpCB(vm, gpr, fpr, data):
+    # wrapper around the angr state returned by VMShot
+    s = StateManager(VMShot(vm))
+    
+    print " >> symbolizing 0x%x : 100" % gpr.rax
+    
+    # the argv[0] string address is in rax
+    s.sim(s["rax"], 100)
+    m = s.simulation_manager()
+    
+    print " >> starting exploration..."
+    
+    m.explore(find=0x400602, # find: 0000000000400602 mov     edi, offset aCorrectThatIsT ; "Correct! that is the secret key!"
+        avoid=0x40060E) # avoid: 000000000040060E mov     edi, offset aIMSorryThatSTh ; "I'm sorry, that's the wrong secret key!"
+    
+    if len(m.found) > 0:
+        print " >> valid state found"
+    else:
+        print " >> valid state not found"
+        return
+    
+    s.to_dbg(m.found[0]) # write concretized solution to memory
+    
+    # print concretized solution
+    print " >> solution:"
+    c = s.concretize(m.found[0])
+    print "0x%x : 100 = %s" % (list(c)[0], repr(c[list(c)[0]]))
+    
+    return pyqbdi.CONTINUE
+
+
+def pyqbdipreload_on_run(vm, start, stop):
+    # add hook on 00000000004005F9 call    verify
+    v = vm.addCodeAddrCB(0x4005F9, pyqbdi.PREINST, bpCB, None)
+    vm.run(start, stop)
+
+
