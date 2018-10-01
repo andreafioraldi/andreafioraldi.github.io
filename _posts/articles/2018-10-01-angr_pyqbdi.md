@@ -7,5 +7,5 @@ comments: true
 description: Synchronize the pyQDBI vm state with angr using my tool angrdbg
 ---
 
-<iframe src="/assets/angr_pyqbdi.txt">
+<iframe src="https://andreafioraldi.github.io/assets/angr_pyqbdi.txt">
 </iframe>
