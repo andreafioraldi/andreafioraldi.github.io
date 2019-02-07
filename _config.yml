@@ -1,32 +1,5 @@
-# Jekyll configuration
-
-name: _malweisse_blog_
-description: Welcome to the Andrea Fioraldi personal website 
-
-# url is currently only used only for the RSS feed in feed.xml
-url: https://andreafioraldi.github.io/
-
-# baseurl will often be '', but for a project page on gh-pages, it needs to
-# be the project name.
-# *** IMPORTANT: If your local "jekyll serve" throws errors change this to '' or
-#     run it like so: jekyll serve --baseurl=''
-baseurl: ''
-## default date_format
-date_format: 
-  title: "%B-%-d-%Y"
-  archive: "%b"
-  categories: "%b-%Y"
-  tag: "%b-%Y"
-# Language
-lan: "en" 
-
-paginate: 10
-
+# General Jekyll Config
 highlighter: rouge
-markdown: kramdown
-gems: ['jekyll-paginate']
-
-exclude: ['README.md', 'LICENSE', "*.bak"]
-
-disqus: andreafioraldi-github-io
-comments: true
+url: https://andreafioraldi.github.io
+lsi: false
+exclude: [LICENSE, CNAME, README.md, .gitignore, Gemfile, Gemfile.lock]

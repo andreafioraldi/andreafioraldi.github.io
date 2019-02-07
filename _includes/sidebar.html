@@ -1,44 +1,25 @@
-{% assign trans = site.data.values[site.lan] %}
-<div class="sidebar well">
-    <header class="sidebar-header" role="banner">
-        <a href="{{ site.baseurl }}/">
-            <img src="{{ site.baseurl }}/assets/images/image.png" class="img-circle" style="max-height: 100%;max-width: 100%;"/>
-        </a>
-        <!--
-        <h3 class="title">
-        <a href="{{ site.BASE_PATH }}/">{{ site.title }}</a>
-        </h3>
-        -->
-    </header>
-    <div class="text-center">
-        {{ site.description }}
-    </div>
-</div>
-
-{% if site.data.tops.size > 0 %}
-<div class="sidebar well">
-    <h1>{{ trans.top_posts }}</h1>
-    <ul>
-        {% for top in site.data.tops %}
-            {% for post in site.posts %}
-                {% if post.url contains top.url %}
-                    <li><a href="{{ site.baseurl}}{{ post.url }}">{{ post.title }}</a></li>
-                {% endif %}
-            {% endfor %}
-        {% endfor %}
-    </ul>
-</div>
-{% endif %}
-
-<div class="sidebar well">
-    <h1>{{ trans.recent_posts }}</h1>
-    <ul>
-        {% for post in site.posts limit:5 %}
-          <li><a href="{{ site.baseurl}}{{ post.url }}">{{ post.title }}</a></li>
-        {% endfor %}
-    </ul>
-</div>
-
-<div class="sidebar well">
-    {% include links-list.html %}
-</div>
+<nav>
+  <!--<h1>Hi.</h1>-->
+  <a href="/">
+    {% if site.data.theme.social.gravatar %}
+    <img src="http://www.gravatar.com/avatar/{{ site.data.theme.social.gravatar }}?s=200" id="gravatar" alt="My photo"/>
+    {% else %}
+    <!--<img src="/logo.png" id="logo" alt="Blog logo"/>-->
+    {% endif %}
+  </a>
+  <h2><a href="/">{{ site.data.theme.name }}</a></h2>
+  <div id="bio">
+    <p>Computer engineering student at Sapienza university of Rome.</br>
+    Pwning with <a href="https://twitter.com/TheRomanXpl0it">@TheRomanXpl0it</a> and <a href="https://twitter.com/mhackeroni">@mhackeroni</a>.</br>
+    <a href="https://defcon11396.it">DC11396</a> organizer.</br>
+    Trumpeter.</br>
+    Homebrewer.</br>
+    Kamehameha expert.</p>
+    <p>
+    <a href="/about.html">About me</a>
+    </p>
+  </div>
+  <div id="social">
+    {% include social.html %}
+  </div>
+</nav>
