@@ -260,6 +260,17 @@ int strcmp(const char* str1, const char* str2) {
 
 I chose to use the real functions from libc instead of replacing it with a loop like tokencap does because the libc implementation using vectorial instructions is a magnitude faster.
 
+The next steps are to instrument only comparisons with constant values by default and support all other architectures (currently works only for x86/x86_64).
+
+The first stuff is not so trivial to do with DBI because the compiler may choose to not output instructions with the format `cmp reg, imm` even in presence of constant values.
+
+This is always true when the constant is a 64 bit integer on x86_64 cause the maximum immediate size is 32 bit and so the compiler will generate something similar to:
+
+```
+movabs reg1, 0xabadcafe
+cmp reg2, reg1
+```
+
 ## Evaluation
 
 As described in the laf-intel blog post, this is not pure gold. Its effectiveness depends on the target.
