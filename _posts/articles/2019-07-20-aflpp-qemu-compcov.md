@@ -27,7 +27,7 @@ if (input == 0xabad1dea) {
 }
 ```
 
-The laf-intel LLVM was introduced to address this problem splitting the comparison into many branches, assuming that the fuzzer can easily bypass a comparison of one byte.
+The laf-intel LLVM pass was introduced to address this problem splitting the comparison into many branches, assuming that the fuzzer can easily bypass a comparison of one byte.
 
 ```c
 if (input >> 24 == 0xab){
