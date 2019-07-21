@@ -291,11 +291,11 @@ The input folder contains only the `not_kitty.png` image of the AFL testcases.
 
 The results in terms of basic block founds are the following:
 
-![BBs](/assets/libpng_aflpp_compcov_bb.png)
+<img src="/assets/libpng_aflpp_compcov_bb.png" alt="BBs" style="max-width: 100%; height: auto;"> 
 
 The size of the queue doubled but fortunately, this is not a symptom of path explosion:
 
-![BBs](/assets/libpng_aflpp_compcov_queue.png)
+<img src="/assets/libpng_aflpp_compcov_queue.png" alt="Queue" style="max-width: 100%; height: auto;"> 
 
 On other targets enabling CompCov may not change the results or even give some performance penalties so it remains disabled by default, is up to you to choose if use it or not.
 
