@@ -58,7 +58,7 @@ So, why not develop an almost equivalent technique for binary-only fuzzing? It's
 
 Before diving in QEMU CompareCoverage, let's understand how I implemented the AFL instrumentation in QEMU 3.1.0 with TCG block chaining in a thread-safe way and why this was needed.
 
-My teammate Andrea obtained an incredible speedup [inlining the instrumentation in the generated IR and re-enabling block chaining in AFL-QEMU](https://abiondo.me/2018/09/21/improving-afl-qemu-mode/) but at the cost of thread-safety.
+My teammate Andrea obtained an incredible speedup [adding the code to update the coverage inside the generated IR and re-enabling block chaining in AFL-QEMU](https://abiondo.me/2018/09/21/improving-afl-qemu-mode/) but at the cost of thread-safety.
 
 If you look at his patches with attention you can notice that `prev_loc` is a per-thread variable and its address is used to generate the inlined TCG instrumentation:
 
