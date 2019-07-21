@@ -85,7 +85,8 @@ So the address of per-thread variable `prev_loc` associated with the thread that
 Of course Andrea is a good hacker and was aware of this problem but unfortunately TCG does not have specific functions (that we know) to handle TLS variables.
 
 My solution is to pay something in performance and do not generate the inlined instrumentation but only a call to the `afl_maybe_log` routine that uses the TLS variable.
-This is not a huge performance penalty cause TCG block chaining can remain enabled that is the main performance gain given to us by the abiondo patch but his version of AFL-QEMU remains faster (~10% max) and better when fuzzing mono-thread applications.
+This is not a huge performance penalty cause TCG block chaining can remain enabled that is the main performance gain given to us by the abiondo patch.
+His version of AFL-QEMU remains faster (~10% max) and better when fuzzing mono-thread applications.
 
 Now the code used to generate the call is the following:
 
