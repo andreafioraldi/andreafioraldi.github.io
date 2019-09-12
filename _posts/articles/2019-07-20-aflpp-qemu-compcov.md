@@ -303,6 +303,8 @@ If you find some bugs using this instrumentation or simply do other tests DM me 
 
 ## Updates
 
+#### September 12, 2019 
+
 With the 2.54c release of AFL++ now QEMU mode supports the immediates-only instrumentation for CompareCoverage
 and the same instrumentation is now also ported to Unicorn mode.
 
