@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Compare coverage for AFLplusplus QEMU
+title: Compare coverage for AFL++ QEMU
 categories: articles
 tags: tools fuzzing
 comments: true
@@ -300,4 +300,14 @@ The size of the queue doubled but fortunately, this is not a symptom of path exp
 On other targets enabling CompCov may not change the results or even give some performance penalties so it remains disabled by default, is up to you to choose if use it or not.
 
 If you find some bugs using this instrumentation or simply do other tests DM me ([@andreafioraldi](https://twitter.com/andreafioraldi)) and I will update this post.
+
+## Updates
+
+With the 2.54c release of AFL++ now QEMU mode supports the immediates-only instrumentation for CompareCoverage
+and the same instrumentation is now also ported to Unicorn mode.
+
+To enable CompareCoverage the env variable is now `AFL_COMPCOV_LEVEL`.
+
+`AFL_COMPCOV_LEVEL=1` is to instrument only comparisons with immediates / read-only memory and `AFL_COMPCOV_LEVEL=2` is to instruments all
+the comparison as the previous version of CompCov described above.
 
