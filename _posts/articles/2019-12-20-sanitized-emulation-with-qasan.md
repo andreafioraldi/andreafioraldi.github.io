@@ -8,13 +8,13 @@ hidden: true
 description: AddressSanitizer for binaries via DBT
 ---
 
-Fuzzing techniques evolved in the time and tools are nowadays able to reach a good coverage of target programs with techniques that allow fuzzers to bypass roadblocks [1] [2] [3] [4].
+Fuzzing techniques evolved over time and tools are nowadays able to reach a good coverage of target programs with techniques that allow fuzzers to bypass roadblocks [1] [2] [3] [4].
 
-But without good bug detection capabilities, a fuzzer that reach a high coverage is less effective.
+But without good bug detection capabilities, a fuzzer that reaches a high coverage is less effective.
 
 Fuzzing with additional instrumentation for bug detection is one of the most important fields of research in this matter.
 
-Source-level fuzzers such as AFL [5], AFLplusplus [6], libFuzzer [7] and honggfuzz [8] can make use of sanitization frameworks provided by compilers (GCC and LLVM) such as ASAN, MSAN, UBSAN [9] to detect bugs that doesn't necessary crash the programs such as uninitialized reads, heap negative OOBs, and many others.
+Source-level fuzzers such as AFL [5], AFLplusplus [6], libFuzzer [7] and honggfuzz [8] can make use of sanitization frameworks provided by compilers (GCC and LLVM) such as ASAN, MSAN, UBSAN [9] to detect bugs that don't necessary crash the programs such as uninitialized reads, heap negative OOBs, and many others.
 
 Binary-level fuzzers can make use of special hardened allocators such as AFL's libdislocator to detect common misuse of the heap. However, these tools are far from complete (e.g. libdislocator's memalign is not guaranteed to be at the end of a page and so OOBs are not always detected) and don't scale with programs that frequently allocate small chunks.
 
@@ -43,7 +43,7 @@ if (ShadowIsPoisoned(ShadowAddr))
 ActualMemoryAccess(Addr);
 ```
 
-Offset is architecture and OS-dependent, in general, it is an uncommon not used address in the program address space in a way that every 8 bytes of regular memory can be hashed to a single byte of shadow memory and each byte of the shadow memory hashed to unmapped memory (so that the program crashes if try to do `MemoryAccess(ShadowAddr)`).
+Offset is architecture and OS-dependent, in general, it is an uncommon not used address in the program address space in a way that every 8 bytes of regular memory can be hashed to a single byte of shadow memory and each byte of the shadow memory hashed to unmapped memory (so that the program crashes if trying to do `MemoryAccess(ShadowAddr)`).
 
 <img src="/assets/qasan_img1.png" alt="BBs" style="max-width: 100%; height: auto;">
 
@@ -135,13 +135,19 @@ Of course, the library can be run only into the patched QEMU. This is not the on
 
 Obviously, it won't work with static binaries, but patching the static routines in the binary with these syscall invocations it's easy and I'll release an automated script using lief [14] one day.
 
-Regards the error reports, they will not be so meaningful for debugging purposes. The ASan DSO use under the hood will collect stack traces from QEMU and not from the and so the error report will be something similar to the following screenshot (an OOB negative read):
+Regarding the error reports, they will not be so meaningful for debugging purposes. The ASan DSO use under the hood will collect stack traces from QEMU and not from the and so the error report will be something similar to the following screenshot (an OOB negative read):
 
 <img src="/assets/qasan_img2.png" alt="BBs" style="max-width: 100%; height: auto;"> 
 
-I suggest using the `malloc_context_size=0` ASAN_OPTION to avoid to collect these useless traces and speedup a bit QASan.
+I suggest using the `malloc_context_size=0` ASAN_OPTION to avoid to collect these useless stack traces and speedup a bit QASan.
 
-These can be solved with a bit of patching of the ASan codebase but I choose to use the precompiled ASAN DSO for compatibility and avoid to force the user to recompile a custom compiler-rt (I case about usability). The build process will simply take an ASAN DSO, patch the ELF to avoid to hook routines in QEMU cause we don't want to use the ASAn allocator in QEMU but only in the target, otherwise we will have a useless slowdown.
+These can be solved with a bit of patching of the ASan codebase but I choose to use the precompiled ASAN DSO for compatibility and avoid to force the user to recompile a custom compiler-rt (I care about usability). The build process will simply take an ASAN DSO, patch the ELF to avoid to hook routines in QEMU cause we don't want to use the ASAn allocator in QEMU but only in the target, otherwise we will have a useless slowdown.
+
+QASan seems pretty stable, it can run without problems binaries such as gcc, clang, vim, nodejs. To be fair, I have to say that it fails to execute python cause detects a UAF at startup (who knows, maybe python is really bugged).
+
+Just for fun, I recompiled QASan using clang running under QASan. It worked.
+
+There are problems with some libc code (that is not instrumented by default) that I have to investigate in deep.
 
 ## Fuzzing with AFL++
 
@@ -153,7 +159,7 @@ The graph represents the exec/sec (Y axis) over 10 minutes of fuzzing with QEMU 
 
 <img src="/assets/qasan_img3.png" alt="BBs" style="max-width: 100%; height: auto;"> 
 
-I triggered also a bug (a NULL ptr deref), probably a known bug cause the objdump version is quite old (2.30).
+I triggered also a bug (a NULL ptr deref), probably a known bug because the objdump version is quite old (2.30).
 
 ```sh
 andrea@malweisse:~/Desktop/QASAN$ ./qasan --verbose /usr/bin/objdump -g -x crash1
@@ -178,7 +184,7 @@ OFFSET   TYPE              VALUE
 
 Yeah, this crash would be detected also without QASAN, but I want to show you the output of verbose QASan.
 
-More evaluation will come in the future, like new features in AFL++ QEMU.
+More evaluation will come in the future.
 
 ## Conclusion
 
