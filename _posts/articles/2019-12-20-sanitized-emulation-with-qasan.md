@@ -34,7 +34,7 @@ AddressSanitizer [11] is one of the most popular memory error detectors nowadays
 
 It can catch different classes of bugs [12] and in a sound way thanks to the information provided by source-code analysis before instrumentation that enables the detection of bugs like OOB access of stack objects.
 
-ASan uses a shadow memory to keep track of invalid areas of memories. Every memory access (or almost, some may be optimized out if proven to be safe) is instrumented in this way:
+ASan uses a shadow memory to keep track of invalid areas of memory. Every memory access (or almost, some may be optimized out if proven to be safe) is instrumented in this way:
 
 ```c
 ShadowAddr = (Addr >> 3) + Offset;
