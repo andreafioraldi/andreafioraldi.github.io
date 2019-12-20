@@ -137,6 +137,8 @@ Regards the error reports, they will not be so meaningful for debugging purposes
 
 <img src="/assets/qasan_img2.png" alt="BBs" style="max-width: 100%; height: auto;"> 
 
+(picture from [11])
+
 I suggest using the `malloc_context_size=0` ASAN_OPTION to avoid to collect these useless traces and speedup a bit QASan.
 
 These can be solved with a bit of patching of the ASan codebase but I choose to use the precompiled ASAN DSO for compatibility and avoid to force the user to recompile a custom compiler-rt (I case about usability). The build process will simply take an ASAN DSO, patch the ELF to avoid to hook routines in QEMU cause we don't want to use the ASAn allocator in QEMU but only in the target, otherwise we will have a useless slowdown.
