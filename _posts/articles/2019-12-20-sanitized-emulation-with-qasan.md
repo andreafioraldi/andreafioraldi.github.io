@@ -45,7 +45,9 @@ ActualMemoryAccess(Addr);
 
 Offset is architecture and OS-dependent, in general, it is an uncommon not used address in the program address space in a way that every 8 bytes of regular memory can be hashed to a single byte of shadow memory and each byte of the shadow memory hashed to unmapped memory (so that the program crashes if try to do `MemoryAccess(ShadowAddr)`).
 
-<img src="/assets/qasan_img1.png" alt="BBs" style="max-width: 100%; height: auto;"> 
+<img src="/assets/qasan_img1.png" alt="BBs" style="max-width: 100%; height: auto;">
+
+(picture from [11])
 
 To do this shadow memory mapping, ASan maps a lot of virtual memory that remains unused and so not associated with physical frames by the kernel.
 
@@ -136,8 +138,6 @@ Obviously, it won't work with static binaries, but patching the static routines 
 Regards the error reports, they will not be so meaningful for debugging purposes. The ASan DSO use under the hood will collect stack traces from QEMU and not from the and so the error report will be something similar to the following screenshot (an OOB negative read):
 
 <img src="/assets/qasan_img2.png" alt="BBs" style="max-width: 100%; height: auto;"> 
-
-(picture from [11])
 
 I suggest using the `malloc_context_size=0` ASAN_OPTION to avoid to collect these useless traces and speedup a bit QASan.
 
