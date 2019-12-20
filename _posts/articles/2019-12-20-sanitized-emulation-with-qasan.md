@@ -10,7 +10,7 @@ description: AddressSanitizer for binaries via DBT
 
 Fuzzing techniques evolved in the time and tools are nowadays able to reach a good coverage of target programs with techniques that allow fuzzers to bypass roadblocks [1] [2] [3] [4].
 
-But without a good bug detection, a fuzzer that reach a high coverage is less effective.
+But without good bug detection capabilities, a fuzzer that reach a high coverage is less effective.
 
 Fuzzing with additional instrumentation for bug detection is one of the most important fields of research in this matter.
 
