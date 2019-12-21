@@ -8,7 +8,7 @@ hidden: true
 description: AddressSanitizer for binaries via DBT
 ---
 
-Fuzzing techniques evolved over time and tools are nowadays able to reach a good coverage of target programs with techniques that allow fuzzers to bypass roadblocks [1] [2] [3] [4].
+Fuzzing techniques evolved and tools are nowadays able to reach a good coverage of target programs with techniques that allow fuzzers to bypass roadblocks [1] [2] [3] [4].
 
 But without good bug detection capabilities, a fuzzer that reaches a high coverage is less effective.
 
@@ -51,7 +51,7 @@ Offset is architecture and OS-dependent, in general, it is an uncommon not used 
 
 To do this shadow memory mapping, ASan maps a lot of virtual memory that remains unused and so not associated with physical frames by the kernel.
 
-ASan hooks the allocator's routines like malloc, free, memalign & al. with a custom allocator that poison the memory around chunks (redzones) to detect OOB, invalidates freed memory and keep track of it in a quarantine queue.
+ASan hooks the allocator's routines like malloc, free, memalign & al. with a custom allocator that poisons the memory around chunks (redzones) to detect OOB, invalidates freed memory and keeps track of it in a quarantine queue.
 
 To avoid the need to have an instrumented libc, the ASan runtime provides hooks for common libc routines that involve memory access like memcpy, strcpy and many others.
 
@@ -107,7 +107,7 @@ static abi_long qasan_fake_syscall(abi_long action, abi_long arg1,
 }
 ```
 
-The memory accesses in TCG are hooked using TCG helpers [13]. For example, adding qasan_gen_load4 before the code that emits the TCG operations associated with a 32 bit memory load we emit a call to a helper (qasan_load4) that checks the validity of the address using __asan_load4.
+The memory accesses in TCG are hooked using TCG helpers [13]. For example, adding qasan_gen_load4 before the code that emits the TCG operations associated with a 32-bit memory load we emit a call to a helper (qasan_load4) that checks the validity of the address using __asan_load4.
 
 ```c
 static inline void tcg_gen_ld_i32(TCGv_i32 ret, TCGv_ptr arg2,
@@ -133,17 +133,17 @@ void * malloc(size_t size) {
 
 Of course, the library can be run only into the patched QEMU. This is not the only possible solution but I opted for this to simplify the things.
 
-Obviously, it won't work with static binaries, but patching the static routines in the binary with these syscall invocations it's easy and I'll release an automated script using lief [14] one day.
+It won't work with static binaries, but patching the static routines in the binary with these syscall invocations it's easy and I'll release an automated script using lief [14] one day.
 
-Regarding the error reports, they will not be so meaningful for debugging purposes. The ASan DSO use under the hood will collect stack traces from QEMU and not from the and so the error report will be something similar to the following screenshot (an OOB negative read):
+Regarding the error reports, they will not be so meaningful for debugging purposes. The ASan DSO, under the hood, collects stack traces from QEMU and not from the target and so an error report will be something similar to the following screenshot (an OOB negative read):
 
 <img src="/assets/qasan_img2.png" alt="BBs" style="max-width: 100%; height: auto;"> 
 
 I suggest using the `malloc_context_size=0` ASAN_OPTION to avoid to collect these useless stack traces and speedup a bit QASan.
 
-These can be solved with a bit of patching of the ASan codebase but I choose to use the precompiled ASAN DSO for compatibility and avoid to force the user to recompile a custom compiler-rt (I care about usability). The build process will simply take an ASAN DSO, patch the ELF to avoid to hook routines in QEMU cause we don't want to use the ASAn allocator in QEMU but only in the target, otherwise we will have a useless slowdown.
+These can be solved with a bit of patching of the ASan codebase but I choose to use the precompiled ASAN DSO for compatibility and avoid to force the user to recompile a custom compiler-rt (I care about usability). The build process will simply take an ASAN DSO, patch the ELF to avoid hook routines in QEMU cause we don't want to use the ASAn allocator in QEMU but only in the target, otherwise we will have a useless slowdown.
 
-QASan seems pretty stable, it can run without problems binaries such as gcc, clang, vim, nodejs. To be fair, I have to say that it fails to execute python cause detects a UAF at startup (who knows, maybe python is really bugged).
+QASan seems pretty stable, it can run without problems binaries such as GCC, clang, vim, nodejs. To be fair, I have to say that it fails to execute python cause detects a UAF at startup (who knows, maybe python is really bugged).
 
 Just for fun, I recompiled QASan using clang running under QASan. It worked.
 
@@ -155,7 +155,7 @@ QASan, alongside the patches for ASan, includes also all the patches of AFL++ QE
 
 Fuzzing the Ubuntu 18.04 objdump binary with QASan vs. plain QEMU mode I experienced a 2x slowdown respect unsanitized QEMU mode that is reasonable and coherent with the ASan slowdown respect to native executables.
 
-The graph represents the exec/sec (Y axis) over 10 minutes of fuzzing with QEMU and QASan.
+The graph represents the exec/sec (Y-axis) over 10 minutes of fuzzing with QEMU and QASan.
 
 <img src="/assets/qasan_img3.png" alt="BBs" style="max-width: 100%; height: auto;"> 
 
@@ -190,9 +190,9 @@ More evaluation will come in the future.
 
 One step further to fill the gap between source and binary-only fuzzing is done.
 
-QASan is not "defintive"(tm), a lot of work has to be done like MIPS support (x86 ASan addresses are incompatible with the MIPS address space) and contribution from the OSS community are welcome.
+QASan is not "definitive"(tm), a lot of work has to be done like MIPS support (x86 ASan addresses are incompatible with the MIPS address space) and contribution from the OSS community are welcome.
 
-The current implementation of QASan cannot be used to fuzz system wide but there are actions to check and poison memory taht are exposed in the dispatcher and that can be used in a KASAN implementation with hypercalls (e.g. with a Windows kernel module that hooks the kernel allocator with a wrapper that inserts redzones and invalidates memory).
+The current implementation of QASan cannot be used to fuzz system-wide but there are actions to check and poison memory that are exposed in the dispatcher and that can be used in a KASAN implementation with hypercalls (e.g. with a Windows kernel module that hooks the kernel allocator with a wrapper that inserts redzones and invalidates memory).
 
 More work has to be done in this direction to enable the fuzzing of closed source kernels/firmwares with QASan and not only user-space applications.
 
