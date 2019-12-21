@@ -13,7 +13,7 @@
    <email>{{ site.data.theme.email }}</email>
  </author>
 
- {% for post in site.posts %}
+ {% for post in site.posts %}{% if post.hidden == true %}{% else %}
  <entry>
    <title>{{ post.title }}</title>
    <link href="{{site.url}}{{ post.url }}"/>
@@ -21,6 +21,6 @@
    <id>{{ site.url }}{{ post.id }}</id>
    <content type="html">{{ post.content | xml_escape }}</content>
  </entry>
- {% endfor %}
+ {% endif %}{% endfor %}
  
 </feed>
