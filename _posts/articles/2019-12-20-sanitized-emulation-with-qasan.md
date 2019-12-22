@@ -71,7 +71,9 @@ So now, Linus Torvalds may feel a bit disappointed with this solution and may wa
 
 In Linux, the kernel should NEVER allocate memory for userspace (except for the early loading stage of a process).
 
-In QEMU user-mode, the syscalls instructions are recompiled into calls to the `do_syscall` QEMU routine that is a syscall dispatcher in userspace.
+In QEMU user-mode, the syscalls instructions are recompiled into calls to the `do_syscall` QEMU routine that is a syscall dispatcher in userspace that forwards many syscalls to the kernel and handle many others (like brk) in userspace.
+
+We can easily add a syscall in QEMU that is handled in QEMU itself.
 
 So, the workflow is the following:
 
@@ -119,7 +121,9 @@ static inline void tcg_gen_ld_i32(TCGv_i32 ret, TCGv_ptr arg2,
 }
 ```
 
-To hook the function that ASan needs to be hooked I created a small library, libqasan.so, that has to be loaded using LD_PRELOAD into the target.
+At the time of writing, all memory accesses are instrumented. This is not optmial and in the future I want to exclude memory operations know to not work on heap at translation time (e.g. push/pop).
+
+To hook the functions that ASan needs to be hooked I created a small library, libqasan.so, that has to be loaded using LD_PRELOAD into the target.
 
 A hooked action looks like the following:
 
@@ -131,7 +135,7 @@ void * malloc(size_t size) {
 }
 ```
 
-Of course, the library can be run only into the patched QEMU. This is not the only possible solution but I opted for this to simplify the things.
+Of course, the library can be run only into the patched QEMU. This is not the only possible solution but I opted for this one based on LD_PRELOAD to simplify the things.
 
 It won't work with static binaries, but patching the static routines in the binary with these syscall invocations it's easy and I'll release an automated script using lief [14] one day.
 
@@ -141,13 +145,13 @@ Regarding the error reports, they will not be so meaningful for debugging purpos
 
 I suggest using the `malloc_context_size=0` ASAN_OPTION to avoid to collect these useless stack traces and speedup a bit QASan.
 
-These can be solved with a bit of patching of the ASan codebase but I choose to use the precompiled ASAN DSO for compatibility and avoid to force the user to recompile a custom compiler-rt (I care about usability). The build process will simply take an ASAN DSO, patch the ELF to avoid hook routines in QEMU cause we don't want to use the ASAn allocator in QEMU but only in the target, otherwise we will have a useless slowdown.
+This can be solved with a bit of patching of the ASan codebase but I choose to use the precompiled ASAN DSO for compatibility and avoid to force the user to recompile a custom compiler-rt (I care about usability). The build process will simply take an ASAN DSO, patch the ELF to avoid to hook routines in QEMU because we don't want to use the ASAn allocator in QEMU but only in the target to avoid an useless slowdown.
 
-QASan seems pretty stable, it can run without problems binaries such as GCC, clang, vim, nodejs. To be fair, I have to say that it fails to execute python cause detects a UAF at startup (who knows, maybe python is really bugged).
+QASan seems pretty stable, it can run without problems binaries such as GCC, clang, vim, nodejs. To be fair, I have to say that it fails to execute python due to a detected UAF at startup (who knows, maybe python is really bugged).
 
 Just for fun, I recompiled QASan using clang running under QASan. It worked.
 
-There are problems with some libc code (that is not instrumented by default) that I have to investigate in deep.
+There are also problems with some libc code (that is not instrumented by default) that I have to investigate in deep.
 
 ## Fuzzing with AFL++
 
@@ -184,7 +188,7 @@ OFFSET   TYPE              VALUE
 
 Yeah, this crash would be detected also without QASAN, but I want to show you the output of verbose QASan.
 
-More evaluation will come in the future.
+More evaluation (and bugs hopefully) will come in the future.
 
 ## Conclusion
 
@@ -192,7 +196,9 @@ One step further to fill the gap between source and binary-only fuzzing is done.
 
 QASan is not "definitive"(tm), a lot of work has to be done like MIPS support (x86 ASan addresses are incompatible with the MIPS address space) and contribution from the OSS community are welcome.
 
-The current implementation of QASan cannot be used to fuzz system-wide but there are actions to check and poison memory that are exposed in the dispatcher and that can be used in a KASAN implementation with hypercalls (e.g. with a Windows kernel module that hooks the kernel allocator with a wrapper that inserts redzones and invalidates memory).
+The current implementation of QASan cannot be used to fuzz system-wide but there are actions to check and poison memory that are exposed in the dispatcher.
+
+Those actions can be used to build a KASAN implementation using hypercalls (e.g. a Windows kernel module that hooks the kernel allocator with a wrapper that inserts redzones and invalidates memory using hypercalls).
 
 More work has to be done in this direction to enable the fuzzing of closed source kernels/firmwares with QASan and not only user-space applications.
 
