@@ -81,9 +81,9 @@ So, the workflow is the following:
 + Instrument memory accesses in TCG [13] (the IR).
 + Link QEMU with ASan.
 
-In particular, when allocating memory from this new syscall, we have also to make it reachable from the guest marking its pages are read/write.
+In particular, when allocating memory from this new syscall for malloc/calloc/realloc/valloc/..., we have also to make it reachable from the guest marking its pages as readable and writeable in the target context.
 
-On the QEMU side, QASan fake syscall dispatcher is similar to the following snippet:
+Looking at the code, the QASan fake syscall dispatcher is similar to the following snippet:
 
 ```c
 static abi_long qasan_fake_syscall(abi_long action, abi_long arg1,
@@ -109,7 +109,7 @@ static abi_long qasan_fake_syscall(abi_long action, abi_long arg1,
 }
 ```
 
-The memory accesses in TCG are hooked using TCG helpers [13]. For example, adding qasan_gen_load4 before the code that emits the TCG operations associated with a 32-bit memory load we emit a call to a helper (qasan_load4) that checks the validity of the address using __asan_load4.
+The memory accesses in TCG are hooked using TCG helpers [13]. For example, qasan_gen_load4 is called before the code that emits the TCG operations associated with a 32-bit memory load and it emits a call to a helper (qasan_load4) that checks the validity of the address using __asan_load4.
 
 ```c
 static inline void tcg_gen_ld_i32(TCGv_i32 ret, TCGv_ptr arg2,
@@ -145,7 +145,7 @@ Regarding the error reports, they will not be so meaningful for debugging purpos
 
 I suggest using the `malloc_context_size=0` ASAN_OPTION to avoid to collect these useless stack traces and speedup a bit QASan.
 
-This can be solved with a bit of patching of the ASan codebase but I choose to use the precompiled ASAN DSO for compatibility and avoid to force the user to recompile a custom compiler-rt (I care about usability). The build process will simply take an ASAN DSO, patch the ELF to avoid to hook routines in QEMU because we don't want to use the ASAn allocator in QEMU but only in the target to avoid an useless slowdown.
+This can be solved with a bit of patching of the ASan codebase but I choose to use the precompiled ASAN DSO for compatibility and to avoid to force the user to recompile a custom compiler-rt (I care about usability and simplicity). The build process will simply take an ASAN DSO and patch the ELF to avoid to hook routines in QEMU (we don't want to use the ASAn allocator in QEMU but only in the target to avoid an useless slowdown).
 
 QASan seems pretty stable, it can run without problems binaries such as GCC, clang, vim, nodejs. To be fair, I have to say that it fails to execute python due to a detected UAF at startup (who knows, maybe python is really bugged).
 
