@@ -201,6 +201,31 @@ Those actions can be used to build a KASAN implementation using hypercalls (e.g.
 
 More work has to be done in this direction to enable the fuzzing of closed source kernels/firmwares with QASan and not only user-space applications.
 
+## Updates
+
+#### January 11, 2020
+
+In addition to the fake syscall path to call actions ASan actions in QEMU, now QASan implements also a fast path for x86 and x86_64 binaries, the "backdoor".
+
+Basically, to avoid the use of two dispatchers a new x86 instruction is inserted in the lifter. This backdoor instruction call directly the QASan dispatcher.
+
+The code to call the backdoor for x86_64 is:
+
+```asm
+# void* qasan_backdoor(int, void*, void*, void*)
+qasan_backdoor:
+  mov rax, rdi # action
+  mov rdi, rsi # arg1
+  mov rsi, rdx # arg2
+  mov rdx, rcx # arg3
+  .byte 0x0f
+  .byte 0x3a
+  .byte 0xf2
+  ret
+```
+
+The next features in the roadmap are now full system QASan and Stack-Use-After-Return detection.
+
 ## References
 
 [1] "Circumventing Fuzzing Roadblocks with Compiler Transformations" https://lafintel.wordpress.com/2016/08/15/circumventing-fuzzing-roadblocks-with-compiler-transformations/
