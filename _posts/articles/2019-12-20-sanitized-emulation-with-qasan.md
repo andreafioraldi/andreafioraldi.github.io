@@ -205,7 +205,7 @@ More work has to be done in this direction to enable the fuzzing of closed sourc
 
 #### January 11, 2020
 
-In addition to the fake syscall path to call actions ASan actions in QEMU, now QASan implements also a fast path for x86 and x86_64 binaries, the "backdoor".
+In addition to the fake syscall path to call QASan actions in QEMU, now QASan implements also a fast path for x86 and x86_64 binaries, the "backdoor".
 
 Basically, to avoid the use of two dispatchers a new x86 instruction is inserted in the lifter. This backdoor instruction call directly the QASan dispatcher.
 
@@ -224,7 +224,9 @@ qasan_backdoor:
   ret
 ```
 
-The next features in the roadmap are now full system QASan and Stack-Use-After-Return detection.
+The number of parameters are now 3 and not 7 anymore, there aren't actions that use more than 3 arguments at the moment.
+
+The next features in the roadmap are Stack-Use-After-Return detection and full system QASan.
 
 ## References
 
