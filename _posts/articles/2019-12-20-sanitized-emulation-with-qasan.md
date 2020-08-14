@@ -7,6 +7,8 @@ comments: true
 description: AddressSanitizer for binaries via DBT
 ---
 
+> Update: the new QASan architecture is described and evaluated in this paper: https://andreafioraldi.github.io/assets/qasan-secdev20.pdf
+
 Fuzzing techniques evolved and tools are nowadays able to reach a good coverage of target programs with techniques that allow fuzzers to bypass roadblocks [1] [2] [3] [4].
 
 But without good bug detection capabilities, a fuzzer that reaches a high coverage is less effective.
