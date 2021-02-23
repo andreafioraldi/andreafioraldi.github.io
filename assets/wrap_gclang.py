@@ -50,7 +50,7 @@ def cc_mode():
 def ld_mode():
     args = common_opts()
     
-    outname = None
+    outname = 'a.out'
     
     old_args = sys.argv[1:]
     i = 0
@@ -63,13 +63,10 @@ def ld_mode():
             args.append(old_args[i])
         i += 1
 
-    assert(outname is not None)
-
-    cc_exec(old_args)
     with open(outname + '.link_bc.json', 'w') as j:
         json.dump({'original': old_args, 'stripped': args, 'name': outname}, j)
     
-    return cc_exec(args)
+    return cc_exec(old_args)
 
 def is_ld_mode():
     return not ("--version" in sys.argv or "--target-help" in sys.argv or
@@ -77,7 +74,7 @@ def is_ld_mode():
                 "-shared" in sys.argv)
 
 if len(sys.argv) <= 1:
-  cc_exec(sys.argv[1:])
+  cc_exec([])
 elif is_ld_mode():
     ld_mode()
 else:
